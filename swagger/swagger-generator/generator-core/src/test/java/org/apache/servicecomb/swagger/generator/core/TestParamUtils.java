@@ -19,14 +19,21 @@ package org.apache.servicecomb.swagger.generator.core;
 
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import io.swagger.models.Swagger;
+
+import org.apache.servicecomb.swagger.generator.core.pojo.TestType1;
+import org.apache.servicecomb.swagger.generator.core.pojo.TestType2;
 import org.apache.servicecomb.swagger.generator.core.utils.ClassUtils;
 import org.apache.servicecomb.swagger.generator.core.utils.ParamUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import io.swagger.models.parameters.AbstractSerializableParameter;
@@ -94,5 +101,14 @@ public class TestParamUtils {
       Assert.assertEquals("not allow such type of param:[class io.swagger.models.properties.ArrayProperty], "
           + "param name is [testName]", e.getMessage());
     }
+  }
+
+  @Test
+  public void testAddDefinitions() {
+    Swagger swagger = new Swagger();
+    Type type1 = TestType1.class;
+    Type type2 = TestType2.class;
+    ParamUtils.addDefinitions(swagger, type1);
+    ParamUtils.addDefinitions(swagger, type2);
   }
 }
