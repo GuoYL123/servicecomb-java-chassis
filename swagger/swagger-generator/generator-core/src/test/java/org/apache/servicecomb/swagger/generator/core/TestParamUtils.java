@@ -19,6 +19,7 @@ package org.apache.servicecomb.swagger.generator.core;
 
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import org.apache.servicecomb.swagger.generator.core.pojo.TestType2;
 import org.apache.servicecomb.swagger.generator.core.utils.ClassUtils;
 import org.apache.servicecomb.swagger.generator.core.utils.ParamUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
@@ -103,12 +105,32 @@ public class TestParamUtils {
     }
   }
 
+  private static class AllTypeTest{
+    TestType1 t1;
+    TestType2 t2;
+    List<TestType1> t3;
+    Map<String,TestType2> t4;
+    Map<TestType1,TestType2> t5;
+  }
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
   @Test
   public void testAddDefinitions() {
+    Field[] fields = AllTypeTest.class.getDeclaredFields();
+    for (int i=0;i<fields.length;i++)
+      for (int j=0;j<fields.length;j++){
+        if(i!=j) {
+          testExcep(fields[i].getGenericType(),fields[j].getGenericType());
+        }
+      }
+  }
+
+  private void testExcep(Type f1, Type f2){
+    thrown.expect(RuntimeException.class);
     Swagger swagger = new Swagger();
-    Type type1 = TestType1.class;
-    Type type2 = TestType2.class;
-    ParamUtils.addDefinitions(swagger, type1);
-    ParamUtils.addDefinitions(swagger, type2);
+    ParamUtils.addDefinitions(swagger,f1);
+    ParamUtils.addDefinitions(swagger,f2);
   }
 }

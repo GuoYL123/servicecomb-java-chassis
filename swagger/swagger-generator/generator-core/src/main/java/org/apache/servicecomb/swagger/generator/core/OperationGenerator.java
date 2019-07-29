@@ -185,9 +185,9 @@ public class OperationGenerator {
     copyToSwaggerParameters();
     operation.setParameters(swaggerParameters);
 
-    ParamUtils.setIsMergeMode(true);
+//    ParamUtils.setIsMergeMode(true);
     correctOperation();
-    ParamUtils.setIsMergeMode(false);
+//    ParamUtils.setIsMergeMode(false);
   }
 
   protected void copyToSwaggerParameters() {

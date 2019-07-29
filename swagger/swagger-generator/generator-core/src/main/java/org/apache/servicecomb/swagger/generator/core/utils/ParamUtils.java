@@ -21,6 +21,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.servicecomb.swagger.extend.ModelResolverExt;
 import org.apache.servicecomb.swagger.generator.core.OperationGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,11 +123,14 @@ public final class ParamUtils {
   }
 
   public static void addDefinitions(Swagger swagger, Type paramType) {
+    if (swagger.getDefinitions() == null) {
+      ModelResolverExt.refreshClassNameMap();
+    }
     Map<String, Model> models = ModelConverters.getInstance().readAll(paramType);
     for (Map.Entry<String, Model> entry : models.entrySet()) {
-      if (!isMergeMode && models.size() == 1) {
-        handleRepeat(entry.getKey(), paramType);
-      }
+//      if (!isMergeMode && models.size() == 1) {
+//        handleRepeat(entry.getKey(), paramType);
+//      }
       swagger.addDefinition(entry.getKey(), entry.getValue());
     }
   }
