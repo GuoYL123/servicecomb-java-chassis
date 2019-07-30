@@ -33,8 +33,6 @@ import org.apache.servicecomb.swagger.extend.property.creator.InputStreamPropert
 import org.apache.servicecomb.swagger.extend.property.creator.PartPropertyCreator;
 import org.apache.servicecomb.swagger.extend.property.creator.PropertyCreator;
 import org.apache.servicecomb.swagger.extend.property.creator.ShortPropertyCreator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -52,10 +50,6 @@ import io.swagger.util.Json;
 
 public class ModelResolverExt extends ModelResolver {
   private Map<Class<?>, PropertyCreator> propertyCreatorMap = new HashMap<>();
-
-  private static Map<String, JavaType> classNameMap;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ModelResolverExt.class);
 
   public ModelResolverExt() {
     super(findMapper());
@@ -135,32 +129,11 @@ public class ModelResolverExt extends ModelResolver {
 
     checkType(type);
 
-    if (model instanceof ModelImpl) {
-      checkRepeat(type, (ModelImpl) model);
-    }
-
     // 只有声明model的地方才需要标注类型
     if (ModelImpl.class.isInstance(model) && !StringUtils.isEmpty(((ModelImpl) model).getName())) {
       setType(type, model.getVendorExtensions());
     }
     return model;
-  }
-
-  private void checkRepeat(JavaType type, ModelImpl model) {
-    if (classNameMap.containsKey(model.getName())) {
-      if (!classNameMap.get(model.getName()).equals(type)) {
-        LOGGER.warn("The class " + type + " and the class " + classNameMap.get(model.getName())
-            + " have the same APIModel value");
-        throw new RuntimeException("The class " + type + " and the class " + classNameMap.get(model.getName())
-            + " have the same APIModel value");
-      }
-    } else {
-      classNameMap.put(model.getName(), type);
-    }
-  }
-
-  public static void refreshClassNameMap() {
-    classNameMap = new HashMap<>();
   }
 
   @Override

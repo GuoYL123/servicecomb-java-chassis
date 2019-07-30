@@ -17,6 +17,8 @@
 
 package org.apache.servicecomb.swagger.generator.core;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
@@ -33,9 +35,7 @@ import org.apache.servicecomb.swagger.generator.core.pojo.TestType2;
 import org.apache.servicecomb.swagger.generator.core.utils.ClassUtils;
 import org.apache.servicecomb.swagger.generator.core.utils.ParamUtils;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import io.swagger.models.parameters.AbstractSerializableParameter;
@@ -105,32 +105,38 @@ public class TestParamUtils {
     }
   }
 
-  private static class AllTypeTest{
+  private static class AllTypeTest {
     TestType1 t1;
+
     TestType2 t2;
+
     List<TestType1> t3;
-    Map<String,TestType2> t4;
-    Map<TestType1,TestType2> t5;
+
+    Map<String, TestType2> t4;
+
+    TestType2[] t5;
   }
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testAddDefinitions() {
     Field[] fields = AllTypeTest.class.getDeclaredFields();
-    for (int i=0;i<fields.length;i++)
-      for (int j=0;j<fields.length;j++){
-        if(i!=j) {
-          testExcep(fields[i].getGenericType(),fields[j].getGenericType());
+    for (int i = 0; i < fields.length; i++) {
+      for (int j = 0; j < fields.length; j++) {
+        if (i != j) {
+          try {
+            testExcep(fields[i].getGenericType(), fields[j].getGenericType());
+          } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), containsString("duplicate param model:"));
+          }
         }
       }
+    }
   }
 
-  private void testExcep(Type f1, Type f2){
-    thrown.expect(RuntimeException.class);
+  private void testExcep(Type f1, Type f2) {
     Swagger swagger = new Swagger();
-    ParamUtils.addDefinitions(swagger,f1);
-    ParamUtils.addDefinitions(swagger,f2);
+    ParamUtils.addDefinitions(swagger, f1);
+    ParamUtils.addDefinitions(swagger, f2);
   }
 }

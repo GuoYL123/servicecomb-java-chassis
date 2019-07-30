@@ -46,18 +46,10 @@ import io.swagger.models.properties.StringProperty;
 public final class ParamUtils {
   private static DefaultParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
-  private static Map<String, String> classNameMap = new HashMap<>();
-
-  private static boolean isMergeMode = false;
-
   private static final Logger LOGGER = LoggerFactory.getLogger(ParamUtils.class);
 
   private ParamUtils() {
 
-  }
-
-  public static void setIsMergeMode(boolean mode) {
-    isMergeMode = mode;
   }
 
   // 如果existName为empty，则通过原型查找
@@ -123,63 +115,19 @@ public final class ParamUtils {
   }
 
   public static void addDefinitions(Swagger swagger, Type paramType) {
-    if (swagger.getDefinitions() == null) {
-      ModelResolverExt.refreshClassNameMap();
-    }
     Map<String, Model> models = ModelConverters.getInstance().readAll(paramType);
     for (Map.Entry<String, Model> entry : models.entrySet()) {
-//      if (!isMergeMode && models.size() == 1) {
-//        handleRepeat(entry.getKey(), paramType);
-//      }
+      if (null != swagger.getDefinitions()) {
+        Model tempModel = swagger.getDefinitions().get(entry.getKey());
+        if (null != tempModel && !tempModel.equals(entry.getValue())) {
+          LOGGER.warn("duplicate param model: " + entry.getKey());
+          throw new IllegalArgumentException("duplicate param model: " + entry.getKey());
+        }
+      }
       swagger.addDefinition(entry.getKey(), entry.getValue());
     }
   }
 
-  private static void handleRepeat(String key, Type paramType) {
-    Type[] packageClass = {Integer.class, Double.class, Float.class, Character.class, Boolean.class, String.class,
-        Long.class, Short.class, Number.class, Byte.class};
-    if (paramType instanceof Class) {
-      if (((Class) paramType).isArray()) {
-        Field[] fields = ((Class) paramType).getDeclaredFields();
-        if (fields != null && fields.length > 0) {
-          Type temType = fields[0].getClass();
-          handleRepeat(key, temType);
-        }
-      } else if (((Class) paramType).isPrimitive()) {
-        return;
-      } else {
-        for (Type c : packageClass) {
-          if (paramType.equals(c)) {
-            return;
-          }
-        }
-        checkRepeat(key, paramType.getTypeName());
-      }
-    } else if (paramType instanceof ParameterizedType) {
-      Type collectionsType = ((ParameterizedType) paramType).getRawType();
-      if (collectionsType.equals(List.class) || collectionsType.equals(Map.class) ||
-          collectionsType.equals(Set.class) || collectionsType.equals(Queue.class)) {
-        Type[] temType = ((ParameterizedType) paramType).getActualTypeArguments();
-        if (temType != null && temType.length > 0) {
-          for (Type t : temType) {
-            handleRepeat(key, t);
-          }
-        }
-      }
-    } else if (paramType instanceof GenericArrayType) {
-      handleRepeat(key, ((GenericArrayType) paramType).getGenericComponentType());
-    }
-  }
-
-  private static void checkRepeat(String key, String type) {
-    if (classNameMap.containsKey(key)) {
-      if (classNameMap.get(key) != null && !classNameMap.get(key).equals(type)) {
-        LOGGER.warn("The class " + type + " and the class " + classNameMap.get(key) + " have the same APIModel value");
-      }
-    } else {
-      classNameMap.put(key, type);
-    }
-  }
 
   public static void setParameterType(Swagger swagger, Method method, int paramIdx,
       AbstractSerializableParameter<?> parameter) {
