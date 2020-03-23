@@ -65,7 +65,7 @@ public class KieUtil {
       //todo:how to deal env
       if (labelsMap.containsKey("app") && labelsMap.get("app")
           .equals(KieConfig.INSTANCE.getAppName())
-          && labelsMap.containsKey("env") && labelsMap.get("env")
+          && labelsMap.containsKey("environment") && labelsMap.get("environment")
           .equals(KieConfig.INSTANCE.getEnvironment())) {
         if (!labelsMap.containsKey("service")) {
           appList.add(kvDoc);
